@@ -1,0 +1,79 @@
+/* 🌟 General Styling */
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #a0d5e0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* 📌 Main Container */
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  text-align: center;
+}
+
+/* 🔤 Title Styling */
+h1 {
+  color: #333;
+  font-size: 24px;
+}
+
+/* 🔢 Input Field */
+input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* 🎛️ Buttons */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s ease-in-out;
+}
+
+/* ✅ Insert Button */
+button:nth-child(1) {
+  background-color: #4caf50;
+  color: white;
+}
+
+button:nth-child(1):hover {
+  background-color: #388e3c;
+}
+
+/* ❌ Delete Button */
+button:nth-child(2) {
+  background-color: #d32f2f;
+  color: white;
+}
+
+button:nth-child(2):hover {
+  background-color: #b71c1c;
+}
+
+/* 🚨 Error Messages */
+p {
+  color: red;
+  font-weight: bold;
+}
