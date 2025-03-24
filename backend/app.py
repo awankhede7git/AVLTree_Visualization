@@ -90,6 +90,15 @@ class AVLTree:
         while node.left:
             node = node.left
         return node
+    def search(self, root, key):
+        if root is None:
+            return False
+        if key == root.key:
+            return True
+        elif key < root.key:
+            return self.search(root.left, key)
+        else:
+            return self.search(root.right, key)
     
 # Initialize AVL tree
 avl_tree = AVLTree()
@@ -135,6 +144,22 @@ def delete_node():
 @app.route('/status', methods=['GET'])
 def status():
     return jsonify({'message': 'AVL Tree Server Running'}), 200
+
+
+@app.route("/search", methods=["POST"])
+def search():
+    global root
+    data = request.get_json()
+    key = data.get("key")
+
+    if key is None:
+        return jsonify({"message": "Key is required"}), 400
+
+    if avl_tree.search(root, key):  # Use the correct search method
+        return jsonify({"message": f"Value {key} found in the tree"}), 200
+    else:
+        return jsonify({"message": "Value not found in the tree"}), 404
+
 
 if __name__ == '__main__':
     print("Flask server is running...")
