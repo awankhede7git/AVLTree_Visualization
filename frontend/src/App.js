@@ -3,7 +3,6 @@ import axios from "axios";
 import AVLTree from "./AVLTree"; // AVL Tree visualization component
 import "./App.css";
 
-
 function App() {
   const [key, setKey] = useState("");
   const [message, setMessage] = useState("");
@@ -35,9 +34,9 @@ function App() {
     try {
       const response = await axios.post("http://127.0.0.1:5000/insert", { key: parseInt(key) });
       console.log("Tree after insertion:", response.data.tree);
-      setTreeData(null); // Force re-render
-      setTimeout(() => setTreeData(response.data.tree), 0);
+      setTreeData(response.data.tree);
       setKey("");
+      setMessage("Value inserted successfully!");
     } catch (error) {
       console.error("Insert error:", error);
       setMessage("Error inserting node");
@@ -53,12 +52,27 @@ function App() {
     try {
       const response = await axios.post("http://127.0.0.1:5000/delete", { key: parseInt(key) });
       console.log("Tree after deletion:", response.data.tree);
-      setTreeData(null); // Force re-render
-      setTimeout(() => setTreeData(response.data.tree), 0);
+      setTreeData(response.data.tree);
       setKey("");
+      setMessage("Value deleted successfully!");
     } catch (error) {
       console.error("Delete error:", error);
       setMessage("Error deleting node");
+    }
+  };
+
+  // Search for a node
+  const handleSearch = async () => {
+    if (key === "" || isNaN(parseInt(key))) {
+      setMessage("Please enter a valid number");
+      return;
+    }
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/search", { key: parseInt(key) });
+      setMessage(response.data.message); // Display success message from backend
+    } catch (error) {
+      console.error("Search error:", error);
+      setMessage("Value not found in the tree");
     }
   };
 
@@ -73,6 +87,8 @@ function App() {
       />
       <button onClick={handleInsert}>Insert</button>
       <button onClick={handleDelete}>Delete</button>
+      <button onClick={handleSearch}>Search</button>
+
       {message && <p style={{ color: "red" }}>{message}</p>}
       {treeData ? <AVLTree treeData={treeData} /> : <p>Loading tree...</p>}
     </div>
