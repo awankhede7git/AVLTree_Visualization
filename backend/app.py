@@ -15,52 +15,78 @@ class Node:
 # AVL Tree class
 class AVLTree:
     def insert(self, root, key):
-        if root is None:
-            return Node(key)
-
-        if key < root.key:
-            root.left = self.insert(root.left, key)
-        else:
-            root.right = self.insert(root.right, key)
-
-        root.height = 1 + max(self.getHeight(root.left), self.getHeight(root.right))
-        return self.balance(root)
-
-    def delete(self, root, key):
-        if not root:
-            return root
-
-        if key < root.key:
-            root.left = self.delete(root.left, key)
-        elif key > root.key:
-            root.right = self.delete(root.right, key)
-        else:
-            if not root.left:
-                return root.right
-            elif not root.right:
-                return root.left
-
-            temp = self.getMinValueNode(root.right)
-            root.key = temp.key
-            root.right = self.delete(root.right, temp.key)
+        if root is not None and key == root.key:
+            return root, False, None  # No insertion, key exists
 
         if root is None:
-            return root  
+            return Node(key), True, "Inserted node without rotation"  # New node inserted
+
+        if key < root.key:
+            root.left, inserted, rotation = self.insert(root.left, key)
+        else:
+            root.right, inserted, rotation = self.insert(root.right, key)
+
+        if not inserted:
+            return root, False, None
 
         root.height = 1 + max(self.getHeight(root.left), self.getHeight(root.right))
-        return self.balance(root)
 
-    def balance(self, root):
+        # Balance the node
+        balanced_root, balance_rotation = self.balance_with_rotation_info(root)
+        if balance_rotation:
+            rotation = balance_rotation  # Capture the rotation info
+
+        return balanced_root, True, rotation
+
+    def balance_with_rotation_info(self, root):
         balance_factor = self.getBalance(root)
         if balance_factor > 1:
             if self.getBalance(root.left) < 0:
                 root.left = self.rotateLeft(root.left)
-            return self.rotateRight(root)
+                return self.rotateRight(root), "Left-Right Rotation"
+            return self.rotateRight(root), "Right Rotation"
         if balance_factor < -1:
             if self.getBalance(root.right) > 0:
                 root.right = self.rotateRight(root.right)
-            return self.rotateLeft(root)
-        return root
+                return self.rotateLeft(root), "Right-Left Rotation"
+            return self.rotateLeft(root), "Left Rotation"
+        return root, None  # No rotation
+
+    def delete(self, root, key):
+        if not root:
+            return root, None
+
+        if key < root.key:
+            root.left, rotation = self.delete(root.left, key)
+        elif key > root.key:
+            root.right, rotation = self.delete(root.right, key)
+        else:
+            if not root.left:
+                return root.right, "Deleted node without rotation"
+            elif not root.right:
+                return root.left, "Deleted node without rotation"
+
+            temp = self.getMinValueNode(root.right)
+            root.key = temp.key
+            root.right, rotation = self.delete(root.right, temp.key)
+
+        if root is None:
+            return root, None
+
+        root.height = 1 + max(self.getHeight(root.left), self.getHeight(root.right))
+
+        # Balance the node
+        balanced_root, balance_rotation = self.balance_with_rotation_info(root)
+        if balance_rotation:
+            rotation = balance_rotation  # Capture the rotation info
+
+        return balanced_root, rotation
+
+    def getHeight(self, node):
+        return node.height if node else 0
+
+    def getBalance(self, node):
+        return self.getHeight(node.left) - self.getHeight(node.right) if node else 0
 
     def rotateLeft(self, z):
         y = z.right
@@ -80,17 +106,13 @@ class AVLTree:
         y.height = 1 + max(self.getHeight(y.left), self.getHeight(y.right))
         return y
 
-    def getHeight(self, node):
-        return node.height if node else 0
-
-    def getBalance(self, node):
-        return self.getHeight(node.left) - self.getHeight(node.right) if node else 0
-
     def getMinValueNode(self, node):
         while node.left:
             node = node.left
         return node
     def search(self, root, key):
+
+    def contains(self, root, key):
         if root is None:
             return False
         if key == root.key:
@@ -100,6 +122,10 @@ class AVLTree:
         else:
             return self.search(root.right, key)
     
+            return self.contains(root.left, key)
+        else:
+            return self.contains(root.right, key)
+
 # Initialize AVL tree
 avl_tree = AVLTree()
 root = None
@@ -117,17 +143,22 @@ def serialize_tree(node):
 def get_tree():
     return jsonify({"tree": serialize_tree(root)}), 200
 
+# AVL Tree insertion function that handles duplicates
 @app.route('/insert', methods=['POST'])
-def insert_node():
+def insert():
     global root
     data = request.get_json()
-    key = data.get("key")
-
+    key = data.get('key')
     if key is None:
-        return jsonify({"message": "Key is required"}), 400
+        return jsonify({'message': 'Invalid input'}), 400
 
-    root = avl_tree.insert(root, key)
-    return jsonify({"message": f"Inserted {key}", "tree": serialize_tree(root)}), 200
+    # Proceed with insertion
+    root, inserted, rotation_info = avl_tree.insert(root, key)
+    if inserted:
+        message = f"Inserted {key}. {rotation_info}"
+        return jsonify({'message': message, 'tree': serialize_tree(root)}), 200
+    else:
+        return jsonify({'message': f'Key {key} already exists.'}), 400
 
 @app.route('/delete', methods=['POST'])
 def delete_node():
@@ -138,8 +169,14 @@ def delete_node():
     if key is None:
         return jsonify({"message": "Key is required"}), 400
 
-    root = avl_tree.delete(root, key)
-    return jsonify({"message": f"Deleted {key}", "tree": serialize_tree(root)}), 200
+    if not avl_tree.contains(root, key):
+        return jsonify({"message": f"Key {key} not present in the tree."}), 400
+
+    root, rotation_info = avl_tree.delete(root, key)
+    if root is None:
+        return jsonify({"message": f"Deleted {key}. {rotation_info}"}), 200
+    else:
+        return jsonify({"message": f"Deleted {key}. {rotation_info}", "tree": serialize_tree(root)}), 200
 
 @app.route('/status', methods=['GET'])
 def status():
