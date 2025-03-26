@@ -110,9 +110,8 @@ class AVLTree:
         while node.left:
             node = node.left
         return node
-    def search(self, root, key):
 
-    def contains(self, root, key):
+    def search(self, root, key):
         if root is None:
             return False
         if key == root.key:
@@ -121,10 +120,10 @@ class AVLTree:
             return self.search(root.left, key)
         else:
             return self.search(root.right, key)
-    
-            return self.contains(root.left, key)
-        else:
-            return self.contains(root.right, key)
+
+    def contains(self, root, key):
+        return self.search(root, key)
+
 
 # Initialize AVL tree
 avl_tree = AVLTree()
@@ -143,7 +142,6 @@ def serialize_tree(node):
 def get_tree():
     return jsonify({"tree": serialize_tree(root)}), 200
 
-# AVL Tree insertion function that handles duplicates
 @app.route('/insert', methods=['POST'])
 def insert():
     global root
@@ -152,7 +150,6 @@ def insert():
     if key is None:
         return jsonify({'message': 'Invalid input'}), 400
 
-    # Proceed with insertion
     root, inserted, rotation_info = avl_tree.insert(root, key)
     if inserted:
         message = f"Inserted {key}. {rotation_info}"
@@ -182,9 +179,8 @@ def delete_node():
 def status():
     return jsonify({'message': 'AVL Tree Server Running'}), 200
 
-
 @app.route("/search", methods=["POST"])
-def search():
+def search_node():
     global root
     data = request.get_json()
     key = data.get("key")
@@ -192,11 +188,10 @@ def search():
     if key is None:
         return jsonify({"message": "Key is required"}), 400
 
-    if avl_tree.search(root, key):  # Use the correct search method
+    if avl_tree.search(root, key):
         return jsonify({"message": f"Value {key} found in the tree"}), 200
     else:
         return jsonify({"message": "Value not found in the tree"}), 404
-
 
 if __name__ == '__main__':
     print("Flask server is running...")
