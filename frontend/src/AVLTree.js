@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { Network } from "vis-network/standalone";
-//import "vis-network/styles/vis-network.css";
 
 const AVLTree = ({ treeData }) => {
   const containerRef = useRef(null);
@@ -8,33 +7,37 @@ const AVLTree = ({ treeData }) => {
   useEffect(() => {
     if (!treeData || !containerRef.current) return;
 
-    // Convert treeData to Vis.js compatible format
     const nodes = [];
     const edges = [];
+    const addedNodes = new Set(); // Track added nodes to prevent duplicates
 
-    const traverse = (node, parent = null) => {
+    // 🔹 Traverse the tree and assign level-based positions
+    const traverse = (node, parent = null, level = 0) => {
       if (!node) return;
-      nodes.push({
-        id: node.key,
-        label: String(node.key),
-        color: {
-          background: "#7b3fa9", // Purple node color 
-          border: "#5b2c82", // Darker purple border 
-          highlight: { background: "#a460f0", border: "#8a40d6" }, // Highlight color when selected 
-          hover: {
-            border: "#16a085", // Green border on hover
-            background: "#1abc9c", // Light green background on hover
+
+      // ✅ Avoid duplicate node IDs
+      if (!addedNodes.has(node.key)) {
+        nodes.push({
+          id: node.key,
+          label: ` ${node.key} \n (Level ${level})`, // Show level in node
+          level: level, // Track node's level
+          color: {
+            background: "#7b3fa9",
+            border: "#5b2c82",
+            highlight: { background: "#a460f0", border: "#8a40d6" },
+            hover: { border: "#16a085", background: "#1abc9c" },
           },
-        },
-        font: { color: "#ffffff", size: 18 }, // White text
-      });
+          font: { color: "#ffffff", size: 18 },
+        });
+        addedNodes.add(node.key);
+      }
 
       if (parent !== null) {
         edges.push({ from: parent, to: node.key });
       }
 
-      traverse(node.left, node.key);
-      traverse(node.right, node.key);
+      traverse(node.left, node.key, level + 1);
+      traverse(node.right, node.key, level + 1);
     };
 
     traverse(treeData);
@@ -43,13 +46,16 @@ const AVLTree = ({ treeData }) => {
     const options = {
       layout: {
         hierarchical: {
-          direction: "UD",
+          direction: "UD", // Top to Bottom
           sortMethod: "directed",
+          nodeSpacing: 100,
+          levelSeparation: 100, // Space between levels
         },
       },
       edges: {
-        arrows: "to",
+        arrows: { to: true },
       },
+      physics: false, // Keep nodes fixed
     };
 
     const network = new Network(containerRef.current, data, options);
@@ -60,7 +66,7 @@ const AVLTree = ({ treeData }) => {
   return (
     <div
       ref={containerRef}
-      style={{ width: "600px", height: "400px", border: "1px solid black" }}
+      style={{ width: "700px", height: "500px", border: "2px solid black" }}
     />
   );
 };
