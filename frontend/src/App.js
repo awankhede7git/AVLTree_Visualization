@@ -7,14 +7,12 @@ function App() {
   const [key, setKey] = useState("");
   const [message, setMessage] = useState("");
   const [treeData, setTreeData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch AVL Tree from backend
   const fetchTree = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get("http://127.0.0.1:5000/get_tree");
-      console.log("Fetched Tree Data:", response.data.tree);
       setTreeData(response.data.tree);
       setMessage("");
     } catch (error) {
@@ -29,7 +27,6 @@ function App() {
     fetchTree();
   }, []);
 
-  // Insert a node
   const handleInsert = async () => {
     if (key === "" || isNaN(parseInt(key))) {
       setMessage("Please enter a valid number");
@@ -38,24 +35,16 @@ function App() {
     setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/insert", { key: parseInt(key) });
-      console.log("Tree after insertion:", response.data.tree);
       setTreeData(response.data.tree);
       setKey("");
-      setMessage(response.data.message);  // Display success message
+      setMessage(response.data.message);
     } catch (error) {
-      if (error.response && error.response.data.message) {
-        console.error("Insert error:", error.response.data.message);
-        setMessage(error.response.data.message);  // Display error message from the backend
-      } else {
-        console.error("Insert error:", error);
-        setMessage("Error inserting node");
-      }
+      setMessage(error.response?.data?.message || "Error inserting node");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Delete a node
   const handleDelete = async () => {
     if (key === "" || isNaN(parseInt(key))) {
       setMessage("Please enter a valid number");
@@ -64,55 +53,49 @@ function App() {
     setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/delete", { key: parseInt(key) });
-      console.log("Tree after deletion:", response.data.tree);
       setTreeData(response.data.tree);
       setKey("");
-      setMessage(response.data.message);  // Display success message
+      setMessage(response.data.message);
     } catch (error) {
-      if (error.response && error.response.data.message) {
-        console.error("Delete error:", error.response.data.message);
-        setMessage(error.response.data.message);  // Display error message from the backend
-      } else {
-        console.error("Delete error:", error);
-        setMessage("Error deleting node");
-      }
+      setMessage(error.response?.data?.message || "Error deleting node");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Search for a node
   const handleSearch = async () => {
     if (key === "" || isNaN(parseInt(key))) {
       setMessage("Please enter a valid number");
       return;
     }
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/search", { key: parseInt(key) });
-      setMessage(response.data.message); // Display success message from backend
+      setMessage(response.data.message);
     } catch (error) {
-      console.error("Search error:", error);
-      setMessage("Value not found in the tree");
+      setMessage(error.response?.data?.message || "Error searching node");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>AVL Tree Visualization</h1>
+    <div className="App">
+      <h1>AVL Tree Operations</h1>
       <input
         type="number"
-        placeholder="Enter value"
+        placeholder="Enter key"
         value={key}
         onChange={(e) => setKey(e.target.value)}
       />
-      <button onClick={handleInsert} disabled={isLoading || key === "" || isNaN(parseInt(key))}>
-        {isLoading ? "Inserting..." : "Insert"}
-      </button>
-      <button onClick={handleDelete} disabled={isLoading || key === "" || isNaN(parseInt(key))}>
-        {isLoading ? "Deleting..." : "Delete"}
-      </button>
-      {message && <p style={{ color: "red" }}>{message}</p>}
-      {treeData ? <AVLTree treeData={treeData} /> : <p>{isLoading ? "Loading tree..." : "Tree is empty"}</p>}
+      <div>
+        <button onClick={handleInsert} disabled={isLoading}>Insert</button>
+        <button onClick={handleDelete} disabled={isLoading}>Delete</button>
+        <button onClick={handleSearch} disabled={isLoading}>Search</button>
+      </div>
+      {isLoading && <div>Loading...</div>}
+      {message && <p>{message}</p>}
+      <AVLTree treeData={treeData} />
     </div>
   );
 }
