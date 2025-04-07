@@ -19,7 +19,7 @@ const AVLTree = ({ treeData }) => {
       if (!addedNodes.has(node.key)) {
         nodes.push({
           id: node.key,
-          label: ` ${node.key} \n (Level ${level})`, // Show level in node
+          label: ` ${node.key} \n (L ${level})`, // Show level in node
           level: level, // Track node's level
           color: {
             background: "#7b3fa9",
