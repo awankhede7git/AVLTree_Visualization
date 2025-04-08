@@ -8,6 +8,8 @@ function App() {
   const [message, setMessage] = useState("");
   const [treeData, setTreeData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [rotations, setRotations] = useState([]);
+
 
   const fetchTree = async () => {
     setIsLoading(true);
@@ -27,6 +29,23 @@ function App() {
     fetchTree();
   }, []);
 
+  // const handleInsert = async () => {
+  //   if (key === "" || isNaN(parseInt(key))) {
+  //     setMessage("Please enter a valid number");
+  //     return;
+  //   }
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await axios.post("http://127.0.0.1:5000/insert", { key: parseInt(key) });
+  //     setTreeData(response.data.tree);
+  //     setKey("");
+  //     setMessage(response.data.message);
+  //   } catch (error) {
+  //     setMessage(error.response?.data?.message || "Error inserting node");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const handleInsert = async () => {
     if (key === "" || isNaN(parseInt(key))) {
       setMessage("Please enter a valid number");
@@ -38,8 +57,10 @@ function App() {
       setTreeData(response.data.tree);
       setKey("");
       setMessage(response.data.message);
+      setRotations(response.data.rotations || []);
     } catch (error) {
       setMessage(error.response?.data?.message || "Error inserting node");
+      setRotations([]);
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +116,17 @@ function App() {
       </div>
       {isLoading && <div>Loading...</div>}
       {message && <p>{message}</p>}
+      {rotations.length > 0 && (
+        <div className="rotations">
+          <h3>Rotations:</h3>
+          <ul>
+            {rotations.map((rot, index) => (
+              <li key={index}>{rot}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <AVLTree treeData={treeData} />
     </div>
   );
